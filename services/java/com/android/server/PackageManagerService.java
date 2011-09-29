@@ -1692,11 +1692,13 @@ class PackageManagerService extends IPackageManager.Stub {
             if (obj != null) {
                 GrantedPermissions gp = (GrantedPermissions)obj;
                 if (gp.grantedPermissions.contains(permName)) {
+		    // recly -- Apex checks
                     return PackageManager.PERMISSION_GRANTED;
                 }
             } else {
                 HashSet<String> perms = mSystemPermissions.get(uid);
                 if (perms != null && perms.contains(permName)) {
+		    // recly -- Apex checks
                     return PackageManager.PERMISSION_GRANTED;
                 }
             }
