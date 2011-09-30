@@ -401,6 +401,10 @@ class PackageManagerService extends IPackageManager.Stub {
     final SparseArray<PostInstallData> mRunningInstalls = new SparseArray<PostInstallData>();
     int mNextInstallToken = 1;  // nonzero; will be wrapped back to 1 when ++ overflows
 
+    
+    // set a global AccessManager instance 
+    AccessManager acman = new AccessManager(); 
+    
     class PackageHandler extends Handler {
         private boolean mBound = false;
         final ArrayList<HandlerParams> mPendingInstalls =
@@ -1687,6 +1691,9 @@ class PackageManagerService extends IPackageManager.Stub {
     }
 
     public int checkUidPermission(String permName, int uid) {
+    	// RECLY 
+    	Log.d("ACCESSMANAGER", "Check permission: " + permName + " for : " + String.valueOf(uid));
+    	
         synchronized (mPackages) {
             Object obj = mSettings.getUserIdLP(uid);
             if (obj != null) {
