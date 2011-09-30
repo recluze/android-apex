@@ -1705,7 +1705,9 @@ class PackageManagerService extends IPackageManager.Stub {
             } else {
                 HashSet<String> perms = mSystemPermissions.get(uid);
                 if (perms != null && perms.contains(permName)) {
-		    // recly -- Apex checks
+			// it's a regular package. Lookup the name: and check extended Apex permmission
+                	String pName = ps.name; 
+                	acman.checkExtendedPermissionByPackage(permName, pName);
                     return PackageManager.PERMISSION_GRANTED;
                 }
             }
