@@ -70,9 +70,10 @@ public class ApexPackagePolicy {
 	 * @param packageName
 	 *            Package name to load policies for. Defines the policy file
 	 *            name as well.
+	 * @throws PolicyNotFoundException 
 	 * 
 	 */
-	public void loadPoliciesForPackage(String packageName, String policyDirectory) {
+	public void loadPoliciesForPackage(String packageName, String policyDirectory) throws PolicyNotFoundException {
 		this.packageName = packageName;
 		this.policyDirectory = policyDirectory;
 
@@ -110,7 +111,8 @@ public class ApexPackagePolicy {
 
 						// find and set the effect
 						String _attrEffect = parser.getAttributeValue(null, "Effect");
-						ApexPolicy.PolicyEffect _policyEffect = _attrEffect == "Permit" ? ApexPolicy.PolicyEffect.PERMIT
+						String _attrName = parser.getAttributeValue(null, "Name");
+						ApexPolicy.PolicyEffect _policyEffect = _attrEffect.equalsIgnoreCase("Permit") ? ApexPolicy.PolicyEffect.PERMIT
 								: ApexPolicy.PolicyEffect.DENY;
 
 						_policy.setEffect(_policyEffect);
@@ -124,16 +126,20 @@ public class ApexPackagePolicy {
 						_constraint.setCombingingAlgorithm(_combAlgo);
 
 						Log.d(TAG, "Found and added new constraint with combining algo: " + _combAlgo);
+					} else if ("Permission".equals(name)) {
+						String _permName = parser.getAttributeValue(null, "Name");
+						_policy.setPermission(_permName);
+						Log.d(TAG, "Found and added associated permission with name: " + _permName);
 					} else if ("Expression".equals(name) || "ApplicationAttribute".equals(name)
 							|| "SystemAttribute".equals(name) || "Constant".equals(name)) {
 						if (_expr != null) {
-							Log.d(TAG, "Found nested expression of type "+name+". Pushing current one on stack.");
+							Log.d(TAG, "Found nested expression of type " + name + ". Pushing current one on stack.");
 							Expression _expr2 = new Expression();
 							_expr.addSubExpression(_expr2);
 							_exprStack.push(_expr);
 							_expr = _expr2;
 						} else {
-							Log.d(TAG, "Found base expression of type "+name);
+							Log.d(TAG, "Found base expression of type " + name);
 							_expr = new Expression();
 							if (_isConstraint) {
 								Log.d(TAG, "Adding to base constraint");
@@ -149,21 +155,23 @@ public class ApexPackagePolicy {
 							_expr.setFunctionId(_functionId);
 							_expr.setType(Expression.ExpressionType.Expression);
 							Log.d(TAG, "Found and added new expression with FunctionId: " + _functionId);
-						} else if("ApplicationAttribute".equals(name)){
+						} else if ("ApplicationAttribute".equals(name)) {
 							String _attribName = parser.getAttributeValue(null, "AttributeName");
 							String _defaultVal = parser.getAttributeValue(null, "Default");
 							_expr.setAttributeName(_attribName);
 							_expr.setDefaultValue(_defaultVal);
 							_expr.setType(Expression.ExpressionType.ApplicationAttribute);
-							Log.d(TAG, "Found and added new ApplicationAttribute with attribute name: " + _attribName + " and default:" + _defaultVal);
-						} else if("SystemAttribute".equals(name)){
+							Log.d(TAG, "Found and added new ApplicationAttribute with attribute name: " + _attribName
+									+ " and default:" + _defaultVal);
+						} else if ("SystemAttribute".equals(name)) {
 							String _attribName = parser.getAttributeValue(null, "AttributeName");
 							String _defaultVal = parser.getAttributeValue(null, "Default");
 							_expr.setAttributeName(_attribName);
 							_expr.setDefaultValue(_defaultVal);
 							_expr.setType(Expression.ExpressionType.SystemAttribute);
-							Log.d(TAG, "Found and added new SystemAttribute with attribute name: " + _attribName + " and default:" + _defaultVal);
-						} else if("Constant".equals(name)){
+							Log.d(TAG, "Found and added new SystemAttribute with attribute name: " + _attribName
+									+ " and default:" + _defaultVal);
+						} else if ("Constant".equals(name)) {
 							String _defaultValue = parser.getAttributeValue(null, "Value");
 							_expr.setDefaultValue(_defaultValue);
 							_expr.setType(Expression.ExpressionType.Constant);
@@ -172,20 +180,21 @@ public class ApexPackagePolicy {
 					}
 				} else if (parser.getEventType() == XmlPullParser.END_TAG) {
 					String name = parser.getName();
-					if("Expression".equals(name) || "ApplicationAttribute".equals(name)
-							|| "SystemAttribute".equals(name) || "Constant".equals(name)){
-						// only pop if we're not at the last one! 
-						if(_exprStack.size() > 0){
-							Log.d(TAG, "Found end of "+ name +" tag. Popping last expression from stack of size: " + _exprStack.size());
+					if ("Expression".equals(name) || "ApplicationAttribute".equals(name)
+							|| "SystemAttribute".equals(name) || "Constant".equals(name)) {
+						// only pop if we're not at the last one!
+						if (_exprStack.size() > 0) {
+							Log.d(TAG, "Found end of " + name + " tag. Popping last expression from stack of size: "
+									+ _exprStack.size());
 							_expr = _exprStack.pop();
-							// Log.d(TAG, "Current expression is now:" + _expr.toString());
-						}
-						else{ 
-							Log.d(TAG, "Found end of "+ name +" tag. Expression stack size is:" + _exprStack.size());
+							// Log.d(TAG, "Current expression is now:" +
+							// _expr.toString());
+						} else {
+							Log.d(TAG, "Found end of " + name + " tag. Expression stack size is:" + _exprStack.size());
 							_expr = null;
 						}
 						Log.d(TAG, "Expression stack size is now: " + _exprStack.size());
-					}else {
+					} else {
 						Log.d(TAG, "Encountered end tag: " + parser.getName());
 					}
 				}
@@ -195,20 +204,22 @@ public class ApexPackagePolicy {
 		} catch (XmlPullParserException e) {
 			Log.d(TAG, "Error parsing policy file for package: " + packageName + "..." + e.getMessage());
 			e.printStackTrace();
+			throw new PolicyNotFoundException();
 		} catch (IOException e) {
-			Log.d(TAG, "Error reading policy file for package: " + packageName);
+			Log.d(TAG, "Cannot read policy file for package: " + packageName + ". This is normal. Don't panic.");
 			e.printStackTrace();
+			throw new PolicyNotFoundException();
 		}
 
 	}
 
-	private FileReader getPolicyReader(String policyFile) {
+	private FileReader getPolicyReader(String policyFile) throws PolicyNotFoundException {
 		FileReader policyReader = null;
 		try {
 			policyReader = new FileReader(policyFile);
 		} catch (FileNotFoundException e) {
 			Log.w(TAG, "Couldn't find or policy file " + policyFile);
-			return null;
+			throw new PolicyNotFoundException();
 		}
 		return policyReader;
 	}
@@ -236,19 +247,42 @@ public class ApexPackagePolicy {
 
 	}
 
-	/** 
-	 * Evaluate the policies. Apex dictates that the result should be 'true' 
-	 * if there are no 'DENY' results. If there is any deny result, return false. 
-	 * @param attributeManager 
+	/**
+	 * Evaluate the policies. Apex dictates that the result should be 'true' if
+	 * there are no 'DENY' results. If there is any deny result, return false.
+	 * 
+	 * @param attributeManager
+	 * @param permName
+	 *            Permission to check for
 	 * 
 	 * @return true if granted, false if denied
 	 */
-	public boolean evaluatePolicies(AttributeManager attributeManager) {
-		for(ApexPolicy ap : policies) {
-			// if false is returned, return false to calling function. Any deny is a full deny
+	public boolean evaluatePolicies(AttributeManager attributeManager, String permName) {
+		for (ApexPolicy ap : policies) {
+			// if false is returned, return false to calling function. Any deny
+			// is a full deny
+			if (!ap.getPermission().equals(permName))
+				continue;
+
 			if (!ap.evaluatePolicy(attributeManager, packageName))
-				return false; 
+				return false;
 		}
 		return true;
+	}
+
+	/**
+	 * Check if this package has policies associated with permission
+	 * 
+	 * @param permName
+	 *            the permission to check for
+	 * @return True if has at least one policy for this permission, false
+	 *         otherwise
+	 */
+	public boolean hasPoliciesForPermission(String permName) {
+		for (ApexPolicy policy : policies) {
+			if (policy.getPermission().equals(permName))
+				return true;
+		}
+		return false;
 	}
 }
