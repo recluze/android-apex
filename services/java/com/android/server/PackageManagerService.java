@@ -16,6 +16,8 @@
 
 package com.android.server;
 
+import org.csrdu.apex.AccessManager;
+
 import com.android.internal.app.IMediaContainerService;
 import com.android.internal.app.ResolverActivity;
 import com.android.internal.content.NativeLibraryHelper;
@@ -400,6 +402,9 @@ class PackageManagerService extends IPackageManager.Stub {
     };
     final SparseArray<PostInstallData> mRunningInstalls = new SparseArray<PostInstallData>();
     int mNextInstallToken = 1;  // nonzero; will be wrapped back to 1 when ++ overflows
+
+    // set a global AccessManager instance
+    AccessManager acman = new AccessManager();
 
     class PackageHandler extends Handler {
         private boolean mBound = false;
@@ -1687,17 +1692,40 @@ class PackageManagerService extends IPackageManager.Stub {
     }
 
     public int checkUidPermission(String permName, int uid) {
+        String pName = getNameForUid(uid);
+        Log.d("APEX:AccessManager", "Check permission: " + permName + " for : " + pName + "/" + String.valueOf(uid));
         synchronized (mPackages) {
             Object obj = mSettings.getUserIdLP(uid);
             if (obj != null) {
                 GrantedPermissions gp = (GrantedPermissions)obj;
                 if (gp.grantedPermissions.contains(permName)) {
-                    return PackageManager.PERMISSION_GRANTED;
+                    // it's a regular package. Lookup the name: and check extended Apex permmission
+                    boolean retval= acman.checkExtendedPermissionByPackage(permName, pName);
+                    
+                    if (retval) {
+                        Log.d("APEX:AccessManager", "Returning GRANTED from checkUidPermission 1");
+                        return PackageManager.PERMISSION_GRANTED;
+                    }
+                    else {
+                    	Log.d("APEX:AccessManager", "Returning DENIED from checkUidPermission 1");
+                    	throw new SecurityException("APEX:AccessManager SECURITYEXCEPTION");
+                    	// return PackageManager.PERMISSION_DENIED; 
+                    }
+                    // return PackageManager.PERMISSION_GRANTED;
                 }
             } else {
                 HashSet<String> perms = mSystemPermissions.get(uid);
                 if (perms != null && perms.contains(permName)) {
-                    return PackageManager.PERMISSION_GRANTED;
+                    // it's a regular package. Lookup the name: and check extended Apex permmission
+                    boolean retval= acman.checkExtendedPermissionByPackage(permName, pName);
+                    if (retval) {
+                        Log.d("APEX:AccessManager", "Returning GRANTED from checkUidPermission 2");
+                        return PackageManager.PERMISSION_GRANTED;
+                    }
+                    else {
+                        Log.d("APEX:AccessManager", "Returning DENIED from checkUidPermission 2");
+                        return PackageManager.PERMISSION_DENIED;
+                    }
                 }
             }
         }
