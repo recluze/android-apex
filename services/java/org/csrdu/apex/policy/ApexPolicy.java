@@ -103,9 +103,13 @@ public class ApexPolicy {
 		Log.d(TAG, "Running updates for policy: " + this.name);
 		// updates are ALWAYS run. So, keeping them separate here...
 
+		Log.d(TAG, "Got policy result:" + String.valueOf(evaluationResult));
+		Log.d(TAG, "Policy effect is:" + String.valueOf(effect));
 		if (effect == PolicyEffect.PERMIT) {
+			Log.d(TAG, "Final evaluation result with permit is:" + String.valueOf(evaluationResult));
 			return evaluationResult;
 		} else if (effect == PolicyEffect.DENY) {
+			Log.d(TAG, "Final evaluation result with deny is:" + String.valueOf(!evaluationResult));
 			return !evaluationResult;
 		} else {
 			Log.d(TAG, "Found unexpected Policy Effect. Returning false.");

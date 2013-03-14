@@ -62,6 +62,23 @@ public class AttributeManager {
 		}
 		
 	}
+	
+	public Boolean updateApplicationAttribute(String packageName, String attributeName, Object attributeValue) {
+		Log.d(TAG, "Attempting to updating attribute ["+attributeName+"] with value ["+attributeValue.toString()+"] for package "+ packageName );
+		Log.d(TAG, "Checking if application attributes are present in cache.");
+		if (!applicationAttributes.containsKey(packageName)) {
+			Log.d(TAG, "Package attributes not found in cache. Reading attributes from file.");
+			readPackageAttributes(packageName);	
+		}
+		
+		Map<String, Object> attribs = applicationAttributes.get(packageName);
+		attribs.put(attributeName, attributeValue);
+		Log.d(TAG, "Attribute successfully updated in cache.");
+
+		// Now dump the cache in file 
+		writePackageAttributes(packageName);
+		return true; 
+	}
 
 	private void readPackageAttributes(String packageName){
 		HashMap<String, Object> packageAttributes = new HashMap<String, Object>();
@@ -93,6 +110,11 @@ public class AttributeManager {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	private static boolean writePackageAttributes(String packageName){
+		// TODO: Write the cached attributes to file (one attrib=val per line) 
+		return true; 
 	}
 	
 	public static AttributeManager getSingletonInstance() {

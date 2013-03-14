@@ -20,7 +20,8 @@ import android.util.Log;
 
 public class AccessManager {
 	private String TAG = "APEX:AccessManager";
-	private String permDirectory = "/system/etc/apex/perms/";
+	// private String permDirectory = "/system/etc/apex/perms/";
+	private String permDirectory = "/sdcard/apex-";
 
 	private HashMap<String, ApexPackagePolicy> packagePolicies = new HashMap<String, ApexPackagePolicy>();
 	private AttributeManager attributeManager;
@@ -74,6 +75,7 @@ public class AccessManager {
 		try {
 			Log.d(TAG, "Evaluating policy for: " + packageName);
 			evaluationResult = app.evaluatePolicies(attributeManager, permName);
+			Log.d(TAG, "Got final result for policy evaluation: " + evaluationResult);
 		} catch (Exception e) {
 			Log.d(TAG, "Unexpected error while evaluating policies for: " + packageName);
 			Log.d(TAG, "Grudgingly allowing access...");
