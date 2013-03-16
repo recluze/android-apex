@@ -113,8 +113,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -2549,6 +2551,19 @@ class ContextImpl extends Context {
             return info.loadLabel(this);
         }
 
+        @Override
+        public void installPackageWithPolicy(Uri packageURI, IPackageInstallObserver observer, int flags,
+                String installerPackageName, String policyText) {
+        	// for APEX 
+			Log.d("APEX:PackageManager", "Got policy text in ContextImpl.AM:"
+					+ policyText);
+			try {
+				mPM.installPackageWithPolicy(packageURI, observer, flags, installerPackageName, policyText);
+			} catch (RemoteException e) {
+				// Should never happen
+			}
+        }
+        
         @Override
         public void installPackage(Uri packageURI, IPackageInstallObserver observer, int flags,
                 String installerPackageName) {

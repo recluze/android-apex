@@ -21,7 +21,7 @@ import android.util.Log;
 public class AccessManager {
 	private String TAG = "APEX:AccessManager";
 	// private String permDirectory = "/system/etc/apex/perms/";
-	private String permDirectory = "/sdcard/apex-";
+	private String permDirectory = "/data/data/apex-";
 
 	private HashMap<String, ApexPackagePolicy> packagePolicies = new HashMap<String, ApexPackagePolicy>();
 	private AttributeManager attributeManager;
@@ -31,16 +31,12 @@ public class AccessManager {
 	}
 
 	public boolean checkExtendedPermissionByPackage(String permName, String packageName) {
-		// TODO: keep for AlarmClock only for now. Should get rid of it soon.
-		// if (!packageName.equals("com.android.alarmclock"))
-		// return true;
-
 		// get the attribute manager
 		attributeManager = AttributeManager.getSingletonInstance();
 
 		long startTime = System.currentTimeMillis();
 
-		Log.i(TAG, "Checking permission: " + permName + " for " + packageName);
+		Log.d(TAG, "Checking permission: " + permName + " for " + packageName);
 		Log.d(TAG, "Checking if package policy is present in cache.");
 		ApexPackagePolicy app = null;     
 
@@ -69,6 +65,7 @@ public class AccessManager {
 		boolean evaluationResult;
 		if (!app.hasPoliciesForPermission(permName)) {
 			Log.d(TAG, "No policies for permission: " + permName + ". Granting access.");
+			logRet(packageName, permName, true);
 			return true;
 		}
 
@@ -79,14 +76,23 @@ public class AccessManager {
 		} catch (Exception e) {
 			Log.d(TAG, "Unexpected error while evaluating policies for: " + packageName);
 			Log.d(TAG, "Grudgingly allowing access...");
+			logRet(packageName, permName, true);
 			return true;
 		}
 		endTime = System.currentTimeMillis();
 		Log.d(TAG, "Evaluated policy in " + (endTime - startTime) + " ms");
+		
+		logRet(packageName, permName, evaluationResult);
 		// return true if all checks pass
 		return evaluationResult;
 	}
 
+	private void logRet(String packageName, String permName, boolean evaluationResult){ 
+		Log.i(TAG, "PERM: [" + String.format("%-50s", permName) + "] for ["
+				+ String.format("%-50s", packageName) + "] - ["
+				+ (evaluationResult ? "PERMIT" : " DENY ") + "]");
+	}
+	
 	/**
 	 * Remove package policy from the cahce. Might be useful when the user
 	 * updates policy from the package manager. After invalidation, the policy

@@ -332,6 +332,14 @@ public class MockPackageManager extends PackageManager {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public void installPackageWithPolicy(Uri packageURI, IPackageInstallObserver observer, int flags,
+            String installerPackageName, String policyText) {
+    	// for APEX 
+    	installPackage(packageURI, observer, flags, installerPackageName); 
+
+    }
+    
     /**
      * @hide - to match hiding in superclass
      */

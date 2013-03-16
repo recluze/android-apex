@@ -103,6 +103,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -4608,6 +4609,29 @@ class PackageManagerService extends IPackageManager.Stub {
         installPackage(packageURI, observer, flags, null);
     }
 
+    /* 
+     * Apex modified install 
+     */
+    public void installPackageWithPolicy(
+            final Uri packageURI, final IPackageInstallObserver observer, final int flags,
+            final String installerPackageName, final String policyText) {
+    	Log.d("APEX:PackageManager", "Got policy text in PMS:" + policyText);
+    	String pkgName = policyText.substring(0, policyText.indexOf(':'));
+    	String policy = policyText.substring(policyText.indexOf(':') + 1);
+    	PrintWriter out;
+    	File policyFile = new File(mAppDataDir, "apex-" + pkgName);
+		Log.d(TAG, "Trying to write to policy file PMS: " + policyFile.getAbsolutePath());
+		try {
+			out = new PrintWriter(new FileWriter(policyFile));
+			out.print(policy);
+			out.close();
+		} catch (IOException e) {
+			Log.d(TAG, "Exception writing policy file in PMS."); 
+			// e.printStackTrace();
+		} 
+    	installPackage(packageURI, observer, flags, installerPackageName);
+    }
+    
     /* Called when a downloaded package installation has been confirmed by the user */
     public void installPackage(
             final Uri packageURI, final IPackageInstallObserver observer, final int flags,

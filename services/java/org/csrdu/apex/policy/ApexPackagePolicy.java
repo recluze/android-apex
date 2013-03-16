@@ -80,6 +80,11 @@ public class ApexPackagePolicy {
 		// load the policy file based on package name
 		Log.d(TAG, "Loading policy file for : " + packageName + " from: " + policyDirectory);
 		FileReader policyReader = getPolicyReader(policyDirectory + packageName);
+		
+		if (policyReader == null) { 
+			// try reading from default location. Should be removed later.
+			policyReader = getPolicyReader("system/etc/apex/perms/" + packageName);
+		}
 
 		// parse the file and populate the 'policies' field
 		try {
@@ -203,11 +208,11 @@ public class ApexPackagePolicy {
 
 		} catch (XmlPullParserException e) {
 			Log.d(TAG, "Error parsing policy file for package: " + packageName + "..." + e.getMessage());
-			e.printStackTrace();
+			// e.printStackTrace();
 			throw new PolicyNotFoundException();
 		} catch (IOException e) {
 			Log.d(TAG, "Cannot read policy file for package: " + packageName + ". This is normal. Don't panic.");
-			e.printStackTrace();
+			// e.printStackTrace();
 			throw new PolicyNotFoundException();
 		}
 
@@ -218,7 +223,8 @@ public class ApexPackagePolicy {
 		try {
 			policyReader = new FileReader(policyFile);
 		} catch (FileNotFoundException e) {
-			Log.w(TAG, "Couldn't find or policy file " + policyFile);
+			Log.w(TAG, "Couldn't find or load policy file " + policyFile);
+			// e.printStackTrace();
 			throw new PolicyNotFoundException();
 		}
 		return policyReader;
