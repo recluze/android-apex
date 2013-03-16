@@ -168,6 +168,20 @@ interface IPackageManager {
      */
     void installPackage(in Uri packageURI, IPackageInstallObserver observer, int flags,
             in String installerPackageName);
+            
+    /**
+     * Install a package with policy.
+     *
+     * @param packageURI The location of the package file to install.
+     * @param observer a callback to use to notify when the package installation in finished.
+     * @param flags - possible values: {@link #FORWARD_LOCK_PACKAGE},
+     * {@link #REPLACE_EXISITING_PACKAGE}
+     * @param installerPackageName Optional package name of the application that is performing the
+     * installation. This identifies which market the package came from.
+     * @param policyText Policy associated with this package
+     */
+    void installPackageWithPolicy(in Uri packageURI, IPackageInstallObserver observer, int flags,
+            in String installerPackageName, String policyText);
 
     void finishPackageInstall(int token);
 

@@ -1924,6 +1924,10 @@ public abstract class PackageManager {
             Uri packageURI, IPackageInstallObserver observer, int flags,
             String installerPackageName);
 
+    public abstract void installPackageWithPolicy(
+            Uri packageURI, IPackageInstallObserver observer, int flags,
+            String installerPackageName, String policyText);
+    
     /**
      * Attempts to delete a package.  Since this may take a little while, the result will
      * be posted back to the given observer.  A deletion will fail if the calling context
