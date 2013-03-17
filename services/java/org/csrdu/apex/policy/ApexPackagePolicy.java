@@ -96,9 +96,10 @@ public class ApexPackagePolicy {
 			// for the possible new policy etc
 			ApexPolicy _policy = null;
 			Constraint _constraint = null;
+			PostAction _postaction = null; 
 			Expression _expr = null;
 			boolean _isConstraint = false;
-			boolean _isUpdates = false;
+			boolean _isPostAction = false;
 
 			Stack<Expression> _exprStack = new Stack<Expression>();
 
@@ -126,11 +127,24 @@ public class ApexPackagePolicy {
 					} else if ("Constraint".equals(name)) {
 						_constraint = new Constraint();
 						_isConstraint = true;
+						_isPostAction = false;
 						_policy.setConstraint(_constraint);
 						String _combAlgo = parser.getAttributeValue(null, "CombiningAlgorithm");
 						_constraint.setCombingingAlgorithm(_combAlgo);
 
 						Log.d(TAG, "Found and added new constraint with combining algo: " + _combAlgo);
+					} else if ("PostAction".equals(name)) {
+	                        _postaction = new PostAction();
+	                        _isPostAction = true;
+	                        _isConstraint = false; 
+	                        _policy.addPostAction(_postaction);
+	                        String _actionId = parser.getAttributeValue(null, "ActionId");
+	                        _postaction.setActionId(_actionId);
+	                        String _targetAttr = parser.getAttributeValue(null, "TargetAttribute");
+                            _postaction.setTargetAttribute(_targetAttr);
+                            _postaction.setPackageName(packageName);
+
+	                        Log.d(TAG, "Found and added new postaction.");
 					} else if ("Permission".equals(name)) {
 						String _permName = parser.getAttributeValue(null, "Name");
 						_policy.setPermission(_permName);
@@ -149,9 +163,9 @@ public class ApexPackagePolicy {
 							if (_isConstraint) {
 								Log.d(TAG, "Adding to base constraint");
 								_constraint.addExpression(_expr);
-							} else if (_isUpdates) {
+							} else if (_isPostAction) {
 								Log.d(TAG, "Adding to base updates");
-								// add to updates instead
+								_postaction.addExpression(_expr); 
 							}
 						}
 

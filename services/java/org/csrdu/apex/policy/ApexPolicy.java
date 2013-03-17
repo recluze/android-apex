@@ -29,8 +29,13 @@ public class ApexPolicy {
 
 	private String permission = "";
 	private Constraint constraint;
-	private Vector<Update> updates;
+	private Vector<PostAction> postactions;
 
+	
+	public ApexPolicy(){ 
+	    this.postactions = new Vector<PostAction>();
+	}
+	
 	/**
 	 * Get the constraint for this policy
 	 * 
@@ -50,19 +55,30 @@ public class ApexPolicy {
 		this.constraint = constraint;
 	}
 
-	public Vector<Update> getUpdates() {
-		return updates;
+	/**
+     * Get the post actions for this policy
+     * 
+     * @return The postactions 
+     */
+	public Vector<PostAction> getPostActions() {
+		return postactions;
 	}
 
-	public void setUpdates(Vector<Update> updates) {
-		this.updates = updates;
+	/**
+     * Add to post action for this policy
+     * 
+     * @param postaction
+     *            PostAction to add 
+     */
+	public void addPostAction(PostAction postaction) {
+		this.postactions.add(postaction);
 	}
 
 	/**
 	 * Set the Effect of the policy
 	 * 
 	 * @param effect
-	 *            The effect. May be PERMIT or DENY
+	 *            The effect. May be PERMIT, DENY or NA 
 	 * 
 	 */
 	public void setEffect(PolicyEffect effect) {
@@ -78,7 +94,9 @@ public class ApexPolicy {
 
 		if (this.constraint != null)
 			strVal += this.constraint.toString();
-		// also add updates here
+		
+		for (PostAction p : this.postactions)
+            strVal += p.toString();
 
 		strVal += "</ApexPolicy>\n";
 		return strVal;
@@ -96,24 +114,32 @@ public class ApexPolicy {
 	 * @return true if granted, false if denies.
 	 */
 	public boolean evaluatePolicy(AttributeManager attributeManager, String packageName) {
-		Log.d(TAG, "Evaluating policy: " + this.name);
+		Log.d(TAG, "Evaluating policy. " + this.name);
 		// evaluate all constraints
 		boolean evaluationResult = constraint.evaluate(attributeManager, packageName);
 
-		Log.d(TAG, "Running updates for policy: " + this.name);
-		// updates are ALWAYS run. So, keeping them separate here...
-
 		Log.d(TAG, "Got policy result:" + String.valueOf(evaluationResult));
-		Log.d(TAG, "Policy effect is:" + String.valueOf(effect));
-		if (effect == PolicyEffect.PERMIT) {
-			Log.d(TAG, "Final evaluation result with permit is:" + String.valueOf(evaluationResult));
-			return evaluationResult;
-		} else if (effect == PolicyEffect.DENY) {
-			Log.d(TAG, "Final evaluation result with deny is:" + String.valueOf(!evaluationResult));
-			return !evaluationResult;
-		} else {
-			Log.d(TAG, "Found unexpected Policy Effect. Returning false.");
-			return false;
+        if (evaluationResult) {
+            // updates are run only if evaluation result is true. 
+            Log.d(TAG, "Running updates for policy. " + this.name);
+            for (PostAction a : postactions) { 
+                a.execute(attributeManager, packageName);
+            }
+
+            Log.d(TAG, "Policy effect is:" + String.valueOf(effect));
+            if (effect == PolicyEffect.PERMIT) {
+                Log.d(TAG, "Final evaluation result with permit is:" + String.valueOf(evaluationResult));
+                return evaluationResult;
+            } else if (effect == PolicyEffect.DENY) {
+                Log.d(TAG, "Final evaluation result with deny is:" + String.valueOf(!evaluationResult));
+                return !evaluationResult;
+            } else {
+                Log.d(TAG, "Found unexpected Policy Effect. Returning false.");
+                return true; // signifying grant access
+            }
+        } else {
+		    Log.d(TAG, "Final evaluation result is NA");
+		    return true; 
 		}
 	}
 
@@ -137,4 +163,5 @@ public class ApexPolicy {
 	public String getPermission() {
 		return this.permission;
 	}
+
 }

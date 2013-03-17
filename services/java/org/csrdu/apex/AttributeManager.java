@@ -13,7 +13,9 @@ package org.csrdu.apex;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -21,7 +23,7 @@ import java.util.StringTokenizer;
 import android.util.Log;
 
 public class AttributeManager {
-	private static String attributesDirectory = "/system/etc/apex/attribs/";
+	private static String attributesDirectory = "/data/data/apex-att-";
 	private static AttributeManager _singletonInstance;
 	private static String TAG = "APEX:AttributeManager";
 
@@ -96,7 +98,6 @@ public class AttributeManager {
 				packageAttributes.put(attribName, attribVal);
 			}
 			Log.d(TAG, "Adding package attributes to cache for package: " + packageName);
-			applicationAttributes.put(packageName, packageAttributes);
 		} catch (FileNotFoundException e) {
 			Log.d(TAG, "Couldn't find package attribute file: " + attributesDirectory + packageName);
 			e.printStackTrace();
@@ -110,11 +111,28 @@ public class AttributeManager {
 				e.printStackTrace();
 			}
 		}
+		// even if we got an error (in case of file not found e.g.) 
+		applicationAttributes.put(packageName, packageAttributes);
 	}
 	
-	private static boolean writePackageAttributes(String packageName){
-		// TODO: Write the cached attributes to file (one attrib=val per line) 
-		return true; 
+	private boolean writePackageAttributes(String packageName){
+		PrintWriter out;
+		boolean retVal = true;
+		String attribFile = attributesDirectory + packageName;
+		Map<String, Object> pkgAttribs = applicationAttributes.get(packageName); 
+		Log.d(TAG, "Trying to write attributes to file: " + attribFile);
+		try {
+			out = new PrintWriter(new FileWriter(attribFile));
+			for (String k : pkgAttribs.keySet()){ 
+				out.print(k + "=" + pkgAttribs.get(k).toString() + "\n");				
+			}
+			out.close();
+		} catch (IOException e) {
+			Log.d(TAG, "Exception writing attributes file."); 
+			e.printStackTrace();
+			retVal = false; 
+		} 
+		return retVal; 
 	}
 	
 	public static AttributeManager getSingletonInstance() {
