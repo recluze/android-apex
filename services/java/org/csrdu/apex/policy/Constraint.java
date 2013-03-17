@@ -90,15 +90,15 @@ public class Constraint {
 		} catch (IllegalAccessException e) {
 			Log.d(TAG, "IllegalAccessException in constraint combining algo. Granting access.");
 			e.printStackTrace();
-			return true;
+			return false; // signifying NA 
 		} catch (InstantiationException e) {
 			Log.d(TAG, "InstantiationException in constraint combining algo. Granting access.");
 			e.printStackTrace();
-			return true;
+			return false; // signifying NA
 		} catch (ClassNotFoundException e) {
 			Log.d(TAG, "Combining algorithm not found: " + this.combingingAlgorithm + ". Granting access.");
 			e.printStackTrace();
-			return true;
+			return false; // signifying NA
 		}
 		Log.d(TAG, "Calling functionId: " + this.combingingAlgorithm + " with values:");
 		for (Object _v : exprResults)

@@ -172,6 +172,7 @@ public class Expression {
 		} else if (this.type == ExpressionType.ApplicationAttribute) {
 			// return default value if attribute manager returns null...
 			retVal = attributeManager.lookupApplicationAttribute(packageName, this.attributeName);
+			Log.d(TAG, "Evaluated attribute ["+this.attributeName+"] with value: " + retVal.toString());
 		} else if (this.type == ExpressionType.SystemAttribute) {
 
 		} else if (this.type == ExpressionType.Constant) {

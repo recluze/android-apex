@@ -4616,19 +4616,28 @@ class PackageManagerService extends IPackageManager.Stub {
             final Uri packageURI, final IPackageInstallObserver observer, final int flags,
             final String installerPackageName, final String policyText) {
     	Log.d("APEX:PackageManager", "Got policy text in PMS:" + policyText);
-    	String pkgName = policyText.substring(0, policyText.indexOf(':'));
-    	String policy = policyText.substring(policyText.indexOf(':') + 1);
-    	PrintWriter out;
-    	File policyFile = new File(mAppDataDir, "apex-" + pkgName);
-		Log.d(TAG, "Trying to write to policy file PMS: " + policyFile.getAbsolutePath());
-		try {
-			out = new PrintWriter(new FileWriter(policyFile));
-			out.print(policy);
-			out.close();
-		} catch (IOException e) {
-			Log.d(TAG, "Exception writing policy file in PMS."); 
-			// e.printStackTrace();
-		} 
+    	String pkgName = ""; 
+    	String policy = ""; 
+    	if(policyText.indexOf(':') != -1) { 
+    	    pkgName = policyText.substring(0, policyText.indexOf(':'));
+    	    policy = policyText.substring(policyText.indexOf(':') + 1);
+    	}
+    	// Only try to write policy if both package name and policy are given 
+		if (!pkgName.equals("") && !policy.equals("")) {
+			PrintWriter out;
+			File policyFile = new File(mAppDataDir, "apex-" + pkgName);
+			Log.d(TAG,
+					"Trying to write to policy file PMS: "
+							+ policyFile.getAbsolutePath());
+			try {
+				out = new PrintWriter(new FileWriter(policyFile));
+				out.print(policy);
+				out.close();
+			} catch (IOException e) {
+				Log.d(TAG, "Exception writing policy file in PMS.");
+				// e.printStackTrace();
+			}
+		}
     	installPackage(packageURI, observer, flags, installerPackageName);
     }
     

@@ -75,6 +75,7 @@ public class AccessManager {
 			Log.d(TAG, "Got final result for policy evaluation: " + evaluationResult);
 		} catch (Exception e) {
 			Log.d(TAG, "Unexpected error while evaluating policies for: " + packageName);
+			e.printStackTrace();
 			Log.d(TAG, "Grudgingly allowing access...");
 			logRet(packageName, permName, true);
 			return true;
