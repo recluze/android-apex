@@ -1928,6 +1928,8 @@ public abstract class PackageManager {
             Uri packageURI, IPackageInstallObserver observer, int flags,
             String installerPackageName, String policyText);
     
+    public abstract String getPackagePolicy(String packageName);
+    public abstract void setPackagePolicy(String installerPackageName, String policyText);
     /**
      * Attempts to delete a package.  Since this may take a little while, the result will
      * be posted back to the given observer.  A deletion will fail if the calling context

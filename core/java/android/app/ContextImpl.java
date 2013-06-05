@@ -2562,6 +2562,29 @@ class ContextImpl extends Context {
 			}
         }
         
+        @Override 
+        public String getPackagePolicy(String packageName){ 
+            Log.d("APEX:PackageManager", "Got getPackagePolicy in ContextImpl.AM:"
+                    + packageName);
+            try {
+                return mPM.getPackagePolicy(packageName); 
+            } catch (RemoteException e) {
+                // Should never happen
+            }
+            return ""; 
+        }
+        
+        @Override
+        public void setPackagePolicy(String installerPackageName, String policyText) { 
+            Log.d("APEX:PackageManager", "Got setPackagePolicy in ContextImpl.AM:"
+                    + policyText);
+            try {
+                mPM.setPackagePolicy(installerPackageName, policyText); 
+            } catch (RemoteException e) {
+                // Should never happen
+            }
+        }
+        
         @Override
         public void installPackage(Uri packageURI, IPackageInstallObserver observer, int flags,
                 String installerPackageName) {

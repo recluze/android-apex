@@ -183,6 +183,22 @@ interface IPackageManager {
     void installPackageWithPolicy(in Uri packageURI, IPackageInstallObserver observer, int flags,
             in String installerPackageName, String policyText);
 
+    /** 
+     * Get the policy associated with the package
+     * 
+     * @param packageName The package to get the policy of
+     */
+    String getPackagePolicy(in String packageName);          
+            
+    /** 
+     * Set the policy associated with the package
+     * 
+     * @param installerPackageName Optional package name of the application that is performing the
+     * installation. This identifies which market/application the policy came from.
+     * @param policyText Policy associated with this package
+     */
+    void setPackagePolicy(in String installerPackageName, String policyText);                  
+
     void finishPackageInstall(int token);
 
     /**
