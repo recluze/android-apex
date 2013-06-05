@@ -97,6 +97,7 @@ import android.view.Display;
 import android.view.WindowManager;
 
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
@@ -4608,6 +4609,32 @@ class PackageManagerService extends IPackageManager.Stub {
             final Uri packageURI, final IPackageInstallObserver observer, final int flags) {
         installPackage(packageURI, observer, flags, null);
     }
+    
+    private void updatePackagePolicy(final String policyText){ 
+        Log.d("APEX:PackageManager", "Got policy text in PMS:" + policyText);
+        String pkgName = ""; 
+        String policy = ""; 
+        if(policyText.indexOf(':') != -1) { 
+            pkgName = policyText.substring(0, policyText.indexOf(':'));
+            policy = policyText.substring(policyText.indexOf(':') + 1);
+        }
+        // Only try to write policy if both package name and policy are given 
+        if (!pkgName.equals("") && !policy.equals("")) {
+            PrintWriter out;
+            File policyFile = new File(mAppDataDir, "apex-" + pkgName);
+            Log.d(TAG,
+                    "Trying to write to policy file PMS: "
+                            + policyFile.getAbsolutePath());
+            try {
+                out = new PrintWriter(new FileWriter(policyFile));
+                out.print(policy);
+                out.close();
+            } catch (IOException e) {
+                Log.d(TAG, "Exception writing policy file in PMS.");
+                // e.printStackTrace();
+            }
+        }
+    }
 
     /* 
      * Apex modified install 
@@ -4615,30 +4642,39 @@ class PackageManagerService extends IPackageManager.Stub {
     public void installPackageWithPolicy(
             final Uri packageURI, final IPackageInstallObserver observer, final int flags,
             final String installerPackageName, final String policyText) {
-    	Log.d("APEX:PackageManager", "Got policy text in PMS:" + policyText);
-    	String pkgName = ""; 
-    	String policy = ""; 
-    	if(policyText.indexOf(':') != -1) { 
-    	    pkgName = policyText.substring(0, policyText.indexOf(':'));
-    	    policy = policyText.substring(policyText.indexOf(':') + 1);
-    	}
-    	// Only try to write policy if both package name and policy are given 
-		if (!pkgName.equals("") && !policy.equals("")) {
-			PrintWriter out;
-			File policyFile = new File(mAppDataDir, "apex-" + pkgName);
-			Log.d(TAG,
-					"Trying to write to policy file PMS: "
-							+ policyFile.getAbsolutePath());
-			try {
-				out = new PrintWriter(new FileWriter(policyFile));
-				out.print(policy);
-				out.close();
-			} catch (IOException e) {
-				Log.d(TAG, "Exception writing policy file in PMS.");
-				// e.printStackTrace();
-			}
-		}
+    	updatePackagePolicy(policyText);
     	installPackage(packageURI, observer, flags, installerPackageName);
+    }
+
+    /*
+     * Get the policy associated with the package 
+     */
+    public String getPackagePolicy(String packageName){
+        Log.d("APEX:PackageManager", "Reading policy text for: " + packageName);
+        File policyFile = new File(mAppDataDir, "apex-" + packageName);
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(policyFile));
+            String line, results = "";
+            while( ( line = reader.readLine() ) != null){
+                results += line;
+            }
+            reader.close();
+            return results;
+
+        } catch (FileNotFoundException e) {
+            Log.d(TAG, "Exception reading policy file in PMS. File not found:" + policyFile.getAbsolutePath());
+        } catch (IOException e) {
+            Log.d(TAG, "IOException reading policy file in PMS.");
+            // e.printStackTrace();
+        }
+        return ""; 
+    }
+
+    /* 
+     * Set policy associated with package (apex-based)
+     */
+    public void setPackagePolicy(String installerPackageName, String policyText) { 
+        updatePackagePolicy(policyText);
     }
     
     /* Called when a downloaded package installation has been confirmed by the user */

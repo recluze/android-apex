@@ -43,6 +43,7 @@ import android.content.res.XmlResourceParser;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.RemoteException;
+import android.util.Log;
 
 import java.util.List;
 
@@ -332,6 +333,19 @@ public class MockPackageManager extends PackageManager {
         throw new UnsupportedOperationException();
     }
 
+    @Override 
+    public String getPackagePolicy(String packageName){ 
+        Log.d("APEX:PackageManager", "Got getPackagePolicy in MockPackageManager:"
+                + packageName);
+        return ""; 
+    }
+    
+    @Override
+    public void setPackagePolicy(String installerPackageName, String policyText) { 
+        Log.d("APEX:PackageManager", "Got getPackagePolicy in MockPackageManager:"
+                + installerPackageName + " - " + policyText);
+    }
+    
     @Override
     public void installPackageWithPolicy(Uri packageURI, IPackageInstallObserver observer, int flags,
             String installerPackageName, String policyText) {
