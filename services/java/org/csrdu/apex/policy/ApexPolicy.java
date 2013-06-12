@@ -134,7 +134,7 @@ public class ApexPolicy {
                 Log.d(TAG, "Final evaluation result with deny is:" + String.valueOf(!evaluationResult));
                 return !evaluationResult;
             } else {
-                Log.d(TAG, "Found unexpected Policy Effect. Returning false.");
+                Log.d(TAG, "Found unexpected Policy Effect. Allowing access.");
                 return true; // signifying grant access
             }
         } else {
