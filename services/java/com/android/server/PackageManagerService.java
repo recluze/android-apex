@@ -4629,6 +4629,8 @@ class PackageManagerService extends IPackageManager.Stub {
                 out = new PrintWriter(new FileWriter(policyFile));
                 out.print(policy);
                 out.close();
+                acman.invalidatePackagePolicyInCache(pkgName); 
+                Log.d(TAG, "Successfully update policy for: " + pkgName);
             } catch (IOException e) {
                 Log.d(TAG, "Exception writing policy file in PMS.");
                 // e.printStackTrace();
@@ -4675,6 +4677,7 @@ class PackageManagerService extends IPackageManager.Stub {
      */
     public void setPackagePolicy(String installerPackageName, String policyText) { 
         updatePackagePolicy(policyText);
+        
     }
     
     /* Called when a downloaded package installation has been confirmed by the user */

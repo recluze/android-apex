@@ -2578,8 +2578,7 @@ class ContextImpl extends Context {
         
         @Override
         public void setPackagePolicy(String installerPackageName, String policyText) { 
-            Log.d("APEX:PackageManager", "Got setPackagePolicy in ContextImpl.AM:"
-                    + policyText);
+            Log.d("APEX:PackageManager", "Got setPackagePolicy in ContextImpl.AM");
             try {
                 mPM.setPackagePolicy(installerPackageName, policyText); 
             } catch (RemoteException e) {
